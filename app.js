@@ -18,12 +18,14 @@ mongoose
     keepAlive: true,
     useNewUrlParser: true,
     useFindAndModify: false,
-    reconnectTries: Number.MAX_VALUE,
+    useUnifiedTopology: true,
   })
   .then( () => console.log('Connected to the database'))
   .catch( (err) => console.log(err));
 
-// express server instance
+mongoose.set('useCreateIndex', true);
+
+  // express server instance
 const app = express();
 
 // cors middleware setup
