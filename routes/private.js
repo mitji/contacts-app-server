@@ -1,7 +1,11 @@
 var express = require('express');
 var router = express.Router();
+const jwt = require('jsonwebtoken');
 
-/* GET users listing. */
+const contacts = require('./contacts');
+
+router.use('/contacts', contacts);
+
 router.get('/', function(req, res, next) {
   res.send('respond with a resource');
 });

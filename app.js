@@ -1,7 +1,7 @@
-const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -25,7 +25,7 @@ mongoose
 
 mongoose.set('useCreateIndex', true);
 
-  // express server instance
+// express server instance
 const app = express();
 
 // cors middleware setup
@@ -35,6 +35,7 @@ app.use(
     origin: [process.env.PUBLIC_DOMAIN],
   }),
 );
+
 
 // SESSION MIDDLEWARE
 app.use(
@@ -53,8 +54,8 @@ app.use(
 );
 
 app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -62,20 +63,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api', publicRouter);
 app.use('/api', privateRouter);
 
+// ERROR HANDLING
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  next(createError(404));
+  res.status(404).json({ code: 'not found' });
 });
 
 // error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.use((err, req, res, next) => {
+  // always log the error
+  console.error('ERROR', req.method, req.path, err);
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  // only render if the error ocurred before sending the response
+  if (!res.headersSent) {
+    const statusError = err.status || '500';
+    res.status(statusError).json(err);
+  }
 });
 
 module.exports = app;
