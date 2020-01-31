@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const createError = require('http-errors');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const saltRounds = 10;
 
 const User = require('../models/userModel');
@@ -43,8 +44,9 @@ router.post( '/login', isNotLoggedIn, validationLoggin, async (req, res, next) =
       if (!user) {
         next(createError(404));
       } else if (bcrypt.compareSync(password, user.password)) {
+        const token = jwt.sign({username:"ado"}, 'supersecret',{expiresIn: 120});
         req.session.currentUser = user;
-        res.status(200).json(user);
+        res.status(200).json({user, token});
         console.log('----------> logged in!');
         console.log('----------> user logged in', user); 
         return;
