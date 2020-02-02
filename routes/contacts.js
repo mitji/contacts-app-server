@@ -8,24 +8,18 @@ const {
   isLoggedIn,
   isNotLoggedIn,
   validationLoggin,
+  validateToken
 } = require('../helpers/middlewares');
 
-router.get('/', isLoggedIn, (req, res, next) => {
-  const token = req.query.token;
+router.get('/', isLoggedIn, validateToken, async (req, res, next) => {
+  try {
+    const response = await fetch('https://exercise.goldenspear.com/contacts.json');
+    const apiData = await response.json();
+    res.status(200).json(apiData);
+  } catch (error) {
+    console.log(error);
+  }
 
-  jwt.verify(token, 'supersecret', async (err, decoded) => {
-    if(!err){
-      try {
-        const response = await fetch('https://exercise.goldenspear.com/contacts.json');
-        const apiData = await response.json();
-        res.status(200).json(apiData);
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      res.send({error: err});
-    }
-  })
 })
 
 module.exports = router;

@@ -1,8 +1,8 @@
-// middlewares to use in auth route to check if user is logged in,
-// not logged in or if it has introduced something, to check if
-// the input is correct before trying to signup/login/logout
+// auth middlewares
 
 const createError = require('http-errors');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 // if user is logged in
 exports.isLoggedIn = (req, res, next) => {
@@ -22,4 +22,32 @@ exports.validationLoggin = (req, res, next) => {
   
   if(!email || !password) next(createError(400));
   else next();
+};
+
+// JWT validation logic
+exports.validateToken = (req, res, next) => {
+  let token = req.headers['x-access-token'] || req.headers['authorization'];
+  if (token.startsWith('Bearer ')) {
+    // Remove Bearer from string
+    token = token.slice(7, token.length);
+  }
+
+  if (token) {
+    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
+      if (err) {
+        return res.json({
+          success: false,
+          message: 'Token is not valid'
+        });
+      } else {
+        req.decoded = decoded;
+        next();
+      }
+    });
+  } else {
+    return res.json({
+      success: false,
+      message: 'Auth token is not supplied'
+    });
+  }
 };
