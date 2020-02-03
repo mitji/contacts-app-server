@@ -6,8 +6,6 @@ const router = express.Router();
 // helper functions
 const {
   isLoggedIn,
-  isNotLoggedIn,
-  validationLoggin,
   validateToken
 } = require('../helpers/middlewares');
 
