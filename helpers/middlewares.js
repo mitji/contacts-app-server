@@ -25,29 +25,15 @@ exports.validationLoggin = (req, res, next) => {
 };
 
 // JWT validation logic
-exports.validateToken = (req, res, next) => {
-  let token = req.headers['x-access-token'] || req.headers['authorization'];
-  if (token.startsWith('Bearer ')) {
-    // Remove Bearer from string
-    token = token.slice(7, token.length);
-  }
-
-  if (token) {
-    jwt.verify(token, process.env.TOKEN_SECRET, (err, decoded) => {
-      if (err) {
-        return res.json({
-          success: false,
-          message: 'Token is not valid'
-        });
-      } else {
-        req.decoded = decoded;
-        next();
-      }
-    });
-  } else {
-    return res.json({
-      success: false,
-      message: 'Auth token is not supplied'
-    });
+exports.validateToken = async (req, res, next) => {
+  const token = req.cookies.token || '';
+  try {
+    if(!token) {
+      return res.status(401).json('You need a token');
+    }
+    const decrypted = await jwt.verify(token, process.env.TOKEN_SECRET);
+    next();
+  } catch(err) {
+      return res.status(500).json(err)
   }
 };

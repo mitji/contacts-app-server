@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const createError = require('http-errors');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const saltRounds = 10;
 require('dotenv').config();
 
 const User = require('../models/userModel');
+const generateToken = require('../helpers/generateToken');
 
 // helper functions
 const {
@@ -45,9 +45,9 @@ router.post( '/login', isNotLoggedIn, validationLoggin, async (req, res, next) =
       if (!user) {
         next(createError(404));
       } else if (bcrypt.compareSync(password, user.password)) {
-        const token = jwt.sign({username:"goldenspear"}, process.env.TOKEN_SECRET,{expiresIn: '24h'});
         req.session.currentUser = user;
-        res.status(200).json({user, token});
+        await generateToken(res, user._id);
+        res.status(200).json({user});
         return;
       } else {
         next(createError(401));
