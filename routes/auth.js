@@ -71,7 +71,12 @@ router.post('/logout', isLoggedIn, (req, res, next) => {
 
 //  GET '/private' --> Only for testing
 router.get('/private', isLoggedIn, (req, res, next) => {
-  res.status(200).json({ message: 'Test - User is logged in' });
+  try {
+    res.status(200).json({ message: 'Test - User is logged in' });
+  } 
+  catch(error) {
+    next(error)
+  }
 });
 
 module.exports = router;
