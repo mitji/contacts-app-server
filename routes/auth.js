@@ -17,7 +17,7 @@ const {
 
 //  POST    '/signup'
 router.post( '/signup', isNotLoggedIn, validationLoggin, async (req, res, next) => {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
     try {
       const userExists = await User.findOne({ email }, 'email');
 
@@ -26,7 +26,10 @@ router.post( '/signup', isNotLoggedIn, validationLoggin, async (req, res, next) 
         const salt = bcrypt.genSaltSync(saltRounds);                          // create salt
         const hashPass = bcrypt.hashSync(password, salt);                     // encrypt password
         const newUser = await User.create({ email, password: hashPass });     // create user
-        req.session.currentUser = newUser;
+        // if user wants the session to be kept
+        if(rememberMe) {
+          req.session.currentUser = newUser;
+        }
         res.status(200).json(newUser);  
         console.log('----------> signed up!');
         console.log('----------> newUser', newUser);     
@@ -39,13 +42,17 @@ router.post( '/signup', isNotLoggedIn, validationLoggin, async (req, res, next) 
 
 //  POST '/login'
 router.post( '/login', isNotLoggedIn, validationLoggin, async (req, res, next) => {
-    const { email, password } = req.body;
+    const { email, password, rememberMe} = req.body;
+    console.log('\n\n---------> remember me', rememberMe)
     try {
       const user = await User.findOne({ email });
       if (!user) {
         next(createError(404));
       } else if (bcrypt.compareSync(password, user.password)) {
-        req.session.currentUser = user;
+        // if user wants the session to be kept
+        if(rememberMe) {
+          req.session.currentUser = user;
+        }
         await generateToken(res, user._id);
         res.status(200).json({user});
         return;
