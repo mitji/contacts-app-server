@@ -9,7 +9,7 @@ const {
   validateToken
 } = require('../helpers/middlewares');
 
-router.get('/', isLoggedIn, validateToken, async (req, res, next) => {
+router.get('/', validateToken, async (req, res, next) => {
   try {
     const response = await fetch('https://exercise.goldenspear.com/contacts.json');
     const apiData = await response.json();
