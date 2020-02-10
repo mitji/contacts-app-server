@@ -3,10 +3,10 @@ const router = express.Router();
 const createError = require('http-errors');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const User = require('../models/userModel');
-const generateToken = require('../helpers/generateToken');
 
 // helper functions
 const {
@@ -30,9 +30,9 @@ router.post( '/signup', isNotLoggedIn, validationLoggin, async (req, res, next) 
         if(rememberMe) {
           req.session.currentUser = newUser;
         }
-        res.status(200).json(newUser);  
-        console.log('----------> signed up!');
-        console.log('----------> newUser', newUser);     
+
+        let token = jwt.sign({email: email}, process.env.TOKEN_SECRET,{ expiresIn: '24h'});
+        res.status(200).json({newUser, token});
       }
     } catch (error) {
       next(error);
@@ -43,7 +43,7 @@ router.post( '/signup', isNotLoggedIn, validationLoggin, async (req, res, next) 
 //  POST '/login'
 router.post( '/login', isNotLoggedIn, validationLoggin, async (req, res, next) => {
     const { email, password, rememberMe} = req.body;
-    console.log('\n\n---------> remember me', rememberMe)
+
     try {
       const user = await User.findOne({ email });
       if (!user) {
@@ -53,8 +53,8 @@ router.post( '/login', isNotLoggedIn, validationLoggin, async (req, res, next) =
         if(rememberMe) {
           req.session.currentUser = user;
         }
-        await generateToken(res, user._id);
-        res.status(200).json({user});
+        let token = jwt.sign({email: email}, process.env.TOKEN_SECRET,{ expiresIn: '24h'});
+        res.status(200).json({user, token});
         return;
       } else {
         next(createError(401));
